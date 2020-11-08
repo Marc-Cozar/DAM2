@@ -1,0 +1,91 @@
+
+package M09.UF1.Act5;
+
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Scanner;
+import javax.crypto.Cipher;
+
+/**
+ *
+ * @author Marc
+ */
+
+public class Act5 {
+    
+    public static void main(String args[]){
+       
+        Scanner scanner = new Scanner (System.in);
+        
+        byte[] ArrayBytes;
+        byte[] missatgeEncrypt;
+        byte[] missatgeDesen;
+        String missatgeDesencryptat;
+        KeyPair clave;
+        PrivateKey clauPrivada;
+        PublicKey clauPublica;
+        String data;
+        
+          
+        clave = randomGenerate (512);
+        
+        clauPrivada = clave.getPrivate();
+        clauPublica = clave.getPublic();
+        
+        System.out.println("Escriu la frase a encriptar");
+        data = scanner.nextLine();
+        ArrayBytes = data.getBytes();
+        
+       //Missatge Encriptat
+        missatgeEncrypt = encryptData(ArrayBytes,clauPublica);
+        System.out.println(missatgeEncrypt + "\n");
+        
+        missatgeDesen = decryptData(missatgeEncrypt,clauPrivada);
+        missatgeDesencryptat = new String (missatgeDesen);
+        System.out.println(missatgeDesencryptat);
+        
+        System.out.println();
+    } 
+    
+    
+    
+    public static byte[] encryptData(byte[] data, PublicKey pub) {
+        byte[] encryptedData = null;
+        try {
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding","SunJCE");
+            cipher.init(Cipher.ENCRYPT_MODE, pub);
+            encryptedData = cipher.doFinal(data);
+        }catch (Exception ex) {
+            System.err.println("Error xifrant: " + ex);
+        }
+        
+        return encryptedData;
+}
+    
+    public static byte[] decryptData(byte[] data, PrivateKey pub) {
+        byte[] encryptedData = null;
+        try {
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding","SunJCE");
+            cipher.init(Cipher.DECRYPT_MODE, pub);
+            encryptedData = cipher.doFinal(data);
+        }catch (Exception ex) {
+            System.err.println("Error xifrant: " + ex);
+        }
+        
+        return encryptedData;
+}       
+
+    public static KeyPair randomGenerate(int longuitudClau) {
+            KeyPair keys = null;
+            try {
+                KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+                keyGen.initialize(longuitudClau);
+                keys = keyGen.genKeyPair();
+            } catch (Exception ex) {
+                System.err.println("Generador no disponible.");
+            }
+        return keys;
+        }
+}
