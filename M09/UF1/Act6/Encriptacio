@@ -1,0 +1,70 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package M09.UF1.Act6;
+
+import static java.lang.System.out;
+import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import static sun.security.krb5.internal.ktab.KeyTabConstants.keySize;
+
+/**
+ *
+ * @author Marc
+ */
+public class Encriptacio {
+    
+    public static void main(String args[]) throws NoSuchAlgorithmException{
+        
+        Scanner scanner = new Scanner (System.in);
+        
+        String nomArxiu, text;
+        byte[] textBytes;
+         
+        
+        //Demanem el nom del arxiu i el text a encriptar
+        System.out.print(" Introdueix el nom del arxiu: ");
+        nomArxiu = scanner.nextLine();
+
+        System.out.println("Introdueix el text per a encriptar:");
+        text = scanner.nextLine();
+        
+        //transformem el text a bytes
+        textBytes = text.getBytes();
+        
+     
+    }
+    
+    //Generem la clau simetrica de un sol us
+    public static SecretKey keyGenerator(){
+        SecretKey sKey = null;
+        int kSize = 256;
+        try{
+            KeyGenerator kgen = KeyGenerator.getInstance("AES");
+            kgen.init(kSize);
+            sKey = kgen.generateKey();
+        }catch (Exception ex){
+            System.out.println("Generador no disponible");
+        }
+        return sKey;
+    }
+
+    
+    public byte[] encryptData(SecretKey sKey, byte[] textBytes) {
+            byte[] encryptedData = null;
+            try {
+                Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                cipher.init(Cipher.ENCRYPT_MODE, sKey);
+                encryptedData = cipher.doFinal(textBytes);
+            }catch (Exception ex) {
+                System.err.println("Error xifrant les dades: " + ex);
+            }
+            return encryptedData;
+}
+
+}
