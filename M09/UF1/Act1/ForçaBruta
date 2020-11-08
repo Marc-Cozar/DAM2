@@ -1,0 +1,40 @@
+package m9_act1;
+import java.util.Scanner;
+
+/**
+ *
+ * @author Marc Cozar
+ */
+public class ForçaBruta {
+     public static void main (String[] args) {
+         
+        Scanner scanner = new Scanner (System.in);
+        
+        char lletra [] = {97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,32};
+        int espaisDesp = lletra.length;
+        int restar = 0;
+        String text = ""; 
+        int contador = 0;
+        
+        System.out.println("Introdueix el text per a desencriptarlo");
+        text = scanner.nextLine();
+    
+    while (contador != lletra.length) {
+        for(int i=0; i<text.length(); i++){
+            for(int j=0; j<lletra.length; j++){
+                if(lletra[j] == text.charAt(i)){
+                    if((j - espaisDesp) <0){
+                        restar = espaisDesp - j;
+                        System.out.print(lletra[lletra.length - restar]);             
+    } else {
+      System.out.print(lletra[j - espaisDesp]);
+                    }
+                }
+            }
+        }
+         System.out.println();
+            espaisDesp--;
+            contador++;
+     }
+     }
+}
