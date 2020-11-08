@@ -19,6 +19,7 @@ public class Act5 {
        
         Scanner scanner = new Scanner (System.in);
         
+        //declarem les variables
         byte[] ArrayBytes;
         byte[] missatgeEncrypt;
         byte[] missatgeDesen;
@@ -28,20 +29,25 @@ public class Act5 {
         PublicKey clauPublica;
         String data;
         
-          
+        //creem una clau random
         clave = randomGenerate (512);
         
+        //cridem a la funció per a guardar la clau privada y publica en una variable
         clauPrivada = clave.getPrivate();
         clauPublica = clave.getPublic();
         
+        //demanem la frase a encriptar
         System.out.println("Escriu la frase a encriptar");
         data = scanner.nextLine();
+        
+        //Ho convertim a bytes
         ArrayBytes = data.getBytes();
         
-       //Missatge Encriptat
+       //Missatge encrypt i li pasem els valors
         missatgeEncrypt = encryptData(ArrayBytes,clauPublica);
         System.out.println(missatgeEncrypt + "\n");
         
+        //desencriptem el missatge
         missatgeDesen = decryptData(missatgeEncrypt,clauPrivada);
         missatgeDesencryptat = new String (missatgeDesen);
         System.out.println(missatgeDesencryptat);
@@ -50,7 +56,7 @@ public class Act5 {
     } 
     
     
-    
+    //creem la funció per a encriptar el missatge
     public static byte[] encryptData(byte[] data, PublicKey pub) {
         byte[] encryptedData = null;
         try {
@@ -63,7 +69,7 @@ public class Act5 {
         
         return encryptedData;
 }
-    
+    //creem la funció per a desencriptar el missatge
     public static byte[] decryptData(byte[] data, PrivateKey pub) {
         byte[] encryptedData = null;
         try {
@@ -76,7 +82,7 @@ public class Act5 {
         
         return encryptedData;
 }       
-
+    //generem les claus privada i publica
     public static KeyPair randomGenerate(int longuitudClau) {
             KeyPair keys = null;
             try {
