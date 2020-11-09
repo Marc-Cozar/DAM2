@@ -1,17 +1,24 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package M09.UF1.Act6;
 
-import static java.lang.System.out;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.Scanner;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import static sun.security.krb5.internal.ktab.KeyTabConstants.keySize;
 
 /**
  *
@@ -19,52 +26,114 @@ import static sun.security.krb5.internal.ktab.KeyTabConstants.keySize;
  */
 public class Encriptacio {
     
-    public static void main(String args[]) throws NoSuchAlgorithmException{
+    public static void main(String[] args) throws NoSuchAlgorithmException,InvalidKeyException, NoSuchPaddingException,IllegalBlockSizeException, BadPaddingException, IOException,InvalidKeySpecException, Exception {
         
-        Scanner scanner = new Scanner (System.in);
-        
+        Scanner scanner = new Scanner(System.in);
+        //Creem les variables
         String nomArxiu, text;
-        byte[] textBytes;
-         
+        PublicKey PubliceKeyFile;
+        SecretKey SimetricKey;
+        X509EncodedKeySpec publicKeySpec;
+        byte[] bytesText, encryptedBytesText,simetricKeyBytes, simetricKeyEncrypted, bytesFilePub, publicKeyDecode;
         
-        //Demanem el nom del arxiu i el text a encriptar
-        System.out.print(" Introdueix el nom del arxiu: ");
+        //Demanem per pantalla el nom del arxiu que volem utilitzar
+        System.out.println("Escriu el nom del arxiu");
         nomArxiu = scanner.nextLine();
-
-        System.out.println("Introdueix el text per a encriptar:");
+        //llegim tots els bytes del arxiu
+        bytesFilePub = Files.readAllBytes(Paths.get(nomArxiu));
+        
+        
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        String publicKeyContent = new String(bytesFilePub);
+        publicKeyContent = publicKeyContent
+        //eliminem el begin i end del arxiu
+        .replace("—-BEGIN RSA PUBLIC KEY—-", "")
+        .replace("—-END RSA PUBLIC KEY—-", "")
+        .replace("\n", "");
+        publicKeyDecode = Base64.getDecoder()
+        .decode(publicKeyContent);
+        publicKeySpec = new X509EncodedKeySpec(publicKeyDecode);
+        PubliceKeyFile = keyFactory.generatePublic(publicKeySpec);
+        
+        
+        //cridem a la funcio keyGenerator
+        SimetricKey = keyGenerator();
+        simetricKeyBytes = SimetricKey.getEncoded();
+        
+        
+        System.out.print("Què vols encriptar? Escriu el text: ");
+        
+        //llegim el que es vol encriptar
         text = scanner.nextLine();
+        bytesText = text.getBytes();
         
-        //transformem el text a bytes
-        textBytes = text.getBytes();
+        encryptedBytesText = encryptData(SimetricKey,bytesText);
         
-     
+       
+        simetricKeyEncrypted = encryptData(simetricKeyBytes,PubliceKeyFile);
+        
+        //cridem a les funcions i li pasem els parametres
+        fileEncryptKey(simetricKeyEncrypted);
+        fileEncryptMessage(encryptedBytesText);
     }
     
-    //Generem la clau simetrica de un sol us
-    public static SecretKey keyGenerator(){
+    //generem la clau
+    public static SecretKey keyGenerator() throws NoSuchAlgorithmException{
         SecretKey sKey = null;
         int kSize = 256;
         try{
             KeyGenerator kgen = KeyGenerator.getInstance("AES");
             kgen.init(kSize);
             sKey = kgen.generateKey();
-        }catch (Exception ex){
-            System.out.println("Generador no disponible");
+        } catch (Exception ex){
+            System.err.println("Generador no disponible.");
         }
         return sKey;
     }
-
     
-    public byte[] encryptData(SecretKey sKey, byte[] textBytes) {
-            byte[] encryptedData = null;
-            try {
-                Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                cipher.init(Cipher.ENCRYPT_MODE, sKey);
-                encryptedData = cipher.doFinal(textBytes);
-            }catch (Exception ex) {
-                System.err.println("Error xifrant les dades: " + ex);
-            }
-            return encryptedData;
-}
+    public static byte[] encryptData(SecretKey sKey, byte[] data)throws InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	byte[] encryptedData = null;
+	try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, sKey);
+            encryptedData = cipher.doFinal(data);
+	}catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
+            System.err.println("Error xifrant les dades: " + ex);
+	}
+	return encryptedData;
+    }
+    
+    public static byte[] encryptData(byte[] data, PublicKey pub) {
+        byte[] encryptedData = null;
+        try {
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding","SunJCE");
+            cipher.init(Cipher.ENCRYPT_MODE, pub);
+            encryptedData = cipher.doFinal(data);
+        }
+        catch (Exception ex) {
+            System.err.println("Error cifrando: " + ex);
+        }
+        return encryptedData;
+    }
 
+    public static void fileEncryptKey(byte[] data){
+        try{
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("ZZZ_clau_encriptada"));
+            bos.write(data);
+            bos.flush();
+        } catch (Exception ex) {
+            System.err.println("Ha ocurrido un error");
+        }
+    }
+    
+    public static void fileEncryptMessage(byte[] data){
+        try{
+            BufferedOutputStream bos = new BufferedOutputStream
+            (new FileOutputStream("ZZZ_missatge_encriptat"));
+            bos.write(data);
+            bos.flush();
+        } catch (Exception ex) {
+            System.err.println("Ha ocurrido un error");
+        }
+    }
 }
