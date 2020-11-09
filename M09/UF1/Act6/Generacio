@@ -1,59 +1,51 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package M09.UF1.Act6;
 
-import static M09.UF1.Act5.Act5.randomGenerate;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.Scanner;
 
 /**
  *
  * @author Marc
  */
+
 public class Generacio {
  
     
     String clauPri, clauPu;
     
     
-    public static void main(String args[]) throws FileNotFoundException{
+    public static void main(String args[]) throws FileNotFoundException, IOException{
     
         Scanner scanner = new Scanner (System.in);
+        //Declarem les variables
         KeyPair clave;
         int Ksize = 512;
-        PrivateKey clauPrivada;
-        PublicKey clauPublica;
+        PrivateKey privateKey;
+        PublicKey publicKey;
     
         //Generem el parell de claus
         clave = randomGenerate (Ksize);
         
         
         //Agafem la clau privada i publica generada
-        clauPrivada = clave.getPrivate(); 
-        clauPublica = clave.getPublic();
+        privateKey = clave.getPrivate(); 
+        publicKey = clave.getPublic();
+        
+        /*Executem les funcions per a crear els arxius i li pasem com a 
+        parametres la clau publica i la privada*/
+        publicKeyFile(publicKey);
+        privateKeyFile(privateKey);
 
-        //Guardem la clau publica i la privada en dos arxius
-        File publicKey = new File ("clauPublica.txt");
-        PrintStream writerPublic = new PrintStream (publicKey);        
-        writerPublic.println(clauPublica);
-        writerPublic.close();
-              
-        File privateKey = new File ("clauPrivada.txt");    
-        PrintStream writerPrivate = new PrintStream (privateKey);  
-        writerPrivate.println(clauPrivada);
-        writerPrivate.close();    
     }
+    
+    //Generem el parell de claus
     
     public static KeyPair randomGenerate(int longuitudClau) {
             KeyPair keys = null;
@@ -67,4 +59,43 @@ public class Generacio {
         return keys;
         }
     
+    /*Guardem la clau Publica a un arxiu anomenat clauPublica.txt
+    */
+    public static void publicKeyFile(PublicKey pub) throws IOException{  
+       Base64.Encoder encoder = Base64.getEncoder();
+        try (FileWriter out = new FileWriter("clauPublica")) {
+            //afegim aquesta linia per a saber quan comená la calau publica i quan acaba
+            out.write("—-BEGIN RSA PUBLIC KEY—-");
+            out.write("\n");
+            //guardem la clau
+            out.write(encoder.encodeToString(pub.getEncoded()));
+            out.write("\n");
+
+            out.write("—-END RSA PUBLIC KEY—-");
+            out.write("\n");
+            out.close();
+        } catch (IOException ex) {
+            System.out.println("Archivo con la llave publica no creado");
+        }
+    }
+    
+    /*Guardem la clau Privada a un arxiu anomenat clauPrivada.txt
+    */
+    public static void privateKeyFile(PrivateKey priv) throws IOException{  
+        Base64.Encoder encoder = Base64.getEncoder();
+        try (FileWriter out = new FileWriter("clauPrivada")) {
+            //afegim aquesta linia per a saber quan comená la calau privada i quan acaba
+            out.write("—-BEGIN RSA PRIVATE KEY—-");
+            out.write("\n");
+            //guardem la clau
+            out.write(encoder.encodeToString(priv.getEncoded()));
+            out.write("\n");
+
+            out.write("—-END RSA PRIVATE KEY—-");
+            out.write("\n");
+            out.close();
+        } catch (IOException ex) {
+            System.out.println("Archivo con la llave privada no creado");
+        }
+    }   
 }
